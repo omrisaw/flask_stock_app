@@ -39,21 +39,28 @@ def fetch_stock_data():
 def home():
     return render_template("index.html")
 
-@app.route("/stocks", methods=["POST"])
-def add_stock():
-    symbol = request.json.get("symbol", "").strip().upper()
-    if symbol and symbol not in stocks_data:
-        stocks_data[symbol] = {"price": 0, "change": 0}  # Initialize with default values
-        return jsonify({"message": f"Symbol {symbol} added successfully."}), 200
-    return jsonify({"error": "Invalid symbol or already exists."}), 400
+@app.route("/stocks", methods=["GET", "POST", "DELETE"])
+def stocks():
+    if request.method == "GET":
+        # Return the current stocks_data as JSON
+        return jsonify(stocks_data)
 
-@app.route("/stocks", methods=["DELETE"])
-def remove_stock():
-    symbol = request.json.get("symbol", "").strip().upper()
-    if symbol in stocks_data:
-        del stocks_data[symbol]
-        return jsonify({"message": f"Symbol {symbol} removed successfully."}), 200
-    return jsonify({"error": "Symbol not found."}), 400
+    elif request.method == "POST":
+        # Add a stock
+        symbol = request.json.get("symbol", "").strip().upper()
+        if symbol and symbol not in stocks_data:
+            stocks_data[symbol] = {"price": 0, "change": 0}  # Initialize with default values
+            return jsonify({"message": f"Symbol {symbol} added successfully."}), 200
+        return jsonify({"error": "Invalid symbol or already exists."}), 400
+
+    elif request.method == "DELETE":
+        # Remove a stock
+        symbol = request.json.get("symbol", "").strip().upper()
+        if symbol in stocks_data:
+            del stocks_data[symbol]
+            return jsonify({"message": f"Symbol {symbol} removed successfully."}), 200
+        return jsonify({"error": "Symbol not found."}), 400
+
 
 if __name__ == "__main__":
     threading.Thread(target=fetch_stock_data, daemon=True).start()
