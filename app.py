@@ -2,7 +2,7 @@ from flask import Flask, jsonify, request
 import requests
 
 app = Flask(__name__)
-API_KEY = "YOUR_API_KEY"
+API_KEY = "ctujh4hr01qg98tdfqe0ctujh4hr01qg98tdfqeg"
 
 @app.route("/stocks", methods=["GET"])
 def get_stock_data():
