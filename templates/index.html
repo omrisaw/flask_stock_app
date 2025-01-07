@@ -21,7 +21,16 @@
 <body>
   <div class="container">
     <h1 class="text-center">Live Stock Prices</h1>
-    <table class="table table-bordered table-hover mt-4">
+
+    <!-- Add/Remove Symbol Form -->
+    <div class="d-flex mb-4">
+      <input id="newSymbol" type="text" class="form-control" placeholder="Enter stock symbol (e.g., TSLA)">
+      <button class="btn btn-success ms-2" onclick="addSymbol()">Add</button>
+      <button class="btn btn-danger ms-2" onclick="removeSymbol()">Remove</button>
+    </div>
+
+    <!-- Table to Display Stock Data -->
+    <table class="table table-bordered table-hover">
       <thead class="table-dark">
         <tr>
           <th>Symbol</th>
@@ -33,21 +42,26 @@
         <!-- Dynamic rows will be added here -->
       </tbody>
     </table>
+
+    <!-- Error Message -->
+    <div id="errorMessage" class="text-danger text-center"></div>
   </div>
 
   <script>
-    const symbols = ["AAPL", "GOOGL", "AMZN", "MSFT"]; // Add more symbols as needed
+    let symbols = ["AAPL", "GOOGL", "AMZN", "MSFT"]; // Default stock symbols
     const endpoint = "/stocks"; // Flask API endpoint
 
+    // Function to fetch stock data
     async function fetchStockData() {
-      try {
-        // Call the Flask `/stocks` API
-        const response = await fetch(`${endpoint}?symbols=${symbols.join(",")}`);
-        const data = await response.json();
+      const tableBody = document.getElementById("stockTable");
+      const errorMessage = document.getElementById("errorMessage");
+      errorMessage.textContent = ""; // Clear error message
+      tableBody.innerHTML = ""; // Clear table
 
-        // Update the table
-        const tableBody = document.getElementById("stockTable");
-        tableBody.innerHTML = ""; // Clear the table before adding new rows
+      try {
+        const response = await fetch(`${endpoint}?symbols=${symbols.join(",")}`);
+        if (!response.ok) throw new Error("Failed to fetch stock data");
+        const data = await response.json();
 
         data.forEach(stock => {
           const changeClass = stock.change >= 0 ? "text-green" : "text-red";
@@ -61,12 +75,41 @@
           tableBody.innerHTML += row;
         });
       } catch (error) {
+        errorMessage.textContent = "Error: Unable to fetch stock data. Please try again later.";
         console.error("Error fetching stock data:", error);
       }
     }
 
-    // Fetch stock data every 1 seconds
-    setInterval(fetchStockData, 3500);
+    // Function to add a symbol
+    function addSymbol() {
+      const newSymbol = document.getElementById("newSymbol").value.trim().toUpperCase();
+      const errorMessage = document.getElementById("errorMessage");
+      if (newSymbol && !symbols.includes(newSymbol)) {
+        symbols.push(newSymbol);
+        fetchStockData();
+      } else if (symbols.includes(newSymbol)) {
+        errorMessage.textContent = `Symbol "${newSymbol}" is already in the list.`;
+      } else {
+        errorMessage.textContent = "Please enter a valid stock symbol.";
+      }
+      document.getElementById("newSymbol").value = ""; // Clear input
+    }
+
+    // Function to remove a symbol
+    function removeSymbol() {
+      const symbolToRemove = document.getElementById("newSymbol").value.trim().toUpperCase();
+      const errorMessage = document.getElementById("errorMessage");
+      if (symbolToRemove && symbols.includes(symbolToRemove)) {
+        symbols = symbols.filter(symbol => symbol !== symbolToRemove);
+        fetchStockData();
+      } else {
+        errorMessage.textContent = `Symbol "${symbolToRemove}" is not in the list.`;
+      }
+      document.getElementById("newSymbol").value = ""; // Clear input
+    }
+
+    // Fetch stock data every 5 seconds
+    setInterval(fetchStockData, 5000);
 
     // Initial fetch when the page loads
     fetchStockData();
