@@ -4,7 +4,7 @@ import requests
 app = Flask(__name__)
 API_KEY = "ctujh4hr01qg98tdfqe0ctujh4hr01qg98tdfqeg"
 
-@app.route("/stocks", methods=["GET"])
+@app.route("/", methods=["GET"])
 def get_stock_data():
     symbols = request.args.get("symbols", "AAPL,GOOGL,AMZN,MSFT").split(",")
     stock_data = []
