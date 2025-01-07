@@ -27,12 +27,13 @@ def fetch_stock_data():
                     else:
                         updated_data[symbol] = {"error": "Invalid data from API"}
                 else:
-                    updated_data[symbol] = {"error": "Failed to fetch data from API"}
-            except Exception as e:
-                updated_data[symbol] = {"error": str(e)}
+                    updated_data[symbol] = {"error": f"API Error: {response.status_code} {response.text}"}
+            except requests.exceptions.RequestException as e:
+                updated_data[symbol] = {"error": f"Request Exception: {str(e)}"}
         stocks_data = updated_data
         socketio.emit("stock_update", stocks_data)
         time.sleep(refresh_interval)
+
 
 @app.route("/")
 def home():
