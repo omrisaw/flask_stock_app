@@ -52,25 +52,28 @@
     const endpoint = "/stocks"; // Flask API endpoint
 
     // Function to fetch stock data
-   async function fetchStockData() {
+async function fetchStockData() {
   const tableBody = document.getElementById("stockTable");
   const errorMessage = document.getElementById("errorMessage");
   errorMessage.textContent = ""; // Clear error message
   tableBody.innerHTML = ""; // Clear table
 
   try {
-    const response = await fetch(`${endpoint}?symbols=${symbols.join(",")}`);
+    const response = await fetch(`${endpoint}`);
     if (!response.ok) throw new Error(`HTTP Error: ${response.status} ${response.statusText}`);
     const data = await response.json();
 
-    data.forEach(stock => {
+    // Convert the object to an array of entries
+    const stockArray = Object.entries(data); // [['AAPL', {...}], ['GOOGL', {...}]]
+
+    stockArray.forEach(([symbol, stock]) => {
       if (stock.error) {
-        errorMessage.textContent = `Error fetching data for ${stock.symbol}: ${stock.error}`;
+        errorMessage.textContent = `Error fetching data for ${symbol}: ${stock.error}`;
       } else {
         const changeClass = stock.change >= 0 ? "text-green" : "text-red";
         const row = `
           <tr>
-            <td>${stock.symbol}</td>
+            <td>${symbol}</td>
             <td>$${stock.price.toFixed(2)}</td>
             <td class="${changeClass}">${stock.change.toFixed(2)}</td>
           </tr>
