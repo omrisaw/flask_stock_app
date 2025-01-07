@@ -59,14 +59,12 @@ async function fetchStockData() {
   tableBody.innerHTML = ""; // Clear table
 
   try {
-    const response = await fetch(`${endpoint}`);
+    const response = await fetch("/stocks");
     if (!response.ok) throw new Error(`HTTP Error: ${response.status} ${response.statusText}`);
     const data = await response.json();
+    console.log("Data from backend:", data); // Debug
 
-    // Convert the object to an array of entries
-    const stockArray = Object.entries(data); // [['AAPL', {...}], ['GOOGL', {...}]]
-
-    stockArray.forEach(([symbol, stock]) => {
+    Object.entries(data).forEach(([symbol, stock]) => {
       if (stock.error) {
         errorMessage.textContent = `Error fetching data for ${symbol}: ${stock.error}`;
       } else {
@@ -86,6 +84,7 @@ async function fetchStockData() {
     console.error("Error fetching stock data:", error);
   }
 }
+
 
 
     // Function to add a symbol
