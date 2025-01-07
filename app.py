@@ -1,10 +1,15 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, render_template
 import requests
 
 app = Flask(__name__)
 API_KEY = "ctujh4hr01qg98tdfqe0ctujh4hr01qg98tdfqeg"
 
-@app.route("/", methods=["GET"])
+@app.route("/")
+def home():
+    # Serve the HTML page
+    return render_template("index.html")
+
+@app.route("/stocks", methods=["GET"])
 def get_stock_data():
     symbols = request.args.get("symbols", "AAPL,GOOGL,AMZN,MSFT").split(",")
     stock_data = []
@@ -25,3 +30,4 @@ def get_stock_data():
 
 if __name__ == "__main__":
     app.run(debug=True)
+    
