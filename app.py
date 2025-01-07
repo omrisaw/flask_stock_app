@@ -16,6 +16,7 @@ def fetch_stock_data():
         updated_data = {}
         for symbol in stocks_data.keys():
             try:
+                print(f"Fetching data for {symbol}...")  # Debug statement
                 response = requests.get(f"https://finnhub.io/api/v1/quote?symbol={symbol}&token={API_KEY}")
                 if response.status_code == 200:
                     data = response.json()
@@ -32,7 +33,9 @@ def fetch_stock_data():
                 updated_data[symbol] = {"error": f"Request Exception: {str(e)}"}
         stocks_data = updated_data
         socketio.emit("stock_update", stocks_data)
+        print("Updated stocks_data:", stocks_data)  # Debug statement
         time.sleep(refresh_interval)
+
 
 
 @app.route("/")
