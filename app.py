@@ -1,11 +1,9 @@
 from flask import Flask, jsonify, request, render_template
-from flask_socketio import SocketIO
 import requests
 import threading
 import time
 
 app = Flask(__name__)
-socketio = SocketIO(app)
 API_KEY = "ctujh4hr01qg98tdfqe0ctujh4hr01qg98tdfqeg"
 stocks_data = {
     "AAPL": {"price": 0, "change": 0},
@@ -22,18 +20,14 @@ def fetch_stock_data():
         with data_lock:
             for symbol in stocks_data.keys():
                 try:
-                    print(f"Fetching data for {symbol}...")  # Debug
+                    print(f"Fetching data for {symbol}...")
                     response = requests.get(f"https://finnhub.io/api/v1/quote?symbol={symbol}&token={API_KEY}")
-                    print(f"Response for {symbol}: {response.status_code}")  # Debug
-                    
                     if response.status_code == 200:
                         data = response.json()
-                        print(f"Data for {symbol}: {data}")  # Debug
-                    
-                        if data.get("c") is not None:  # Check if current price is valid
+                        if data.get("c") is not None:  # Check if price is valid
                             stocks_data[symbol] = {
-                                "price": data.get("c", 0),  # Current price
-                                "change": data.get("d", 0)  # Price change
+                                "price": data.get("c", 0),
+                                "change": data.get("d", 0)
                             }
                         else:
                             stocks_data[symbol] = {"error": "Invalid data from API"}
@@ -41,10 +35,8 @@ def fetch_stock_data():
                         stocks_data[symbol] = {"error": f"API Error: {response.status_code}"}
                 except requests.exceptions.RequestException as e:
                     stocks_data[symbol] = {"error": f"Request Exception: {str(e)}"}
-            print("Updated stocks_data:", stocks_data)  # Debug
-            socketio.emit("stock_update", stocks_data)
+            print("Updated stocks_data:", stocks_data)
         time.sleep(refresh_interval)
-
 
 @app.route("/")
 def home():
@@ -77,4 +69,4 @@ def stocks():
 if __name__ == "__main__":
     print("Starting app with initial stocks_data:", stocks_data)
     threading.Thread(target=fetch_stock_data, daemon=True).start()
-    socketio.run(app, debug=True)
+    app.run(debug=True)
