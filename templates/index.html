@@ -52,33 +52,38 @@
     const endpoint = "/stocks"; // Flask API endpoint
 
     // Function to fetch stock data
-    async function fetchStockData() {
-      const tableBody = document.getElementById("stockTable");
-      const errorMessage = document.getElementById("errorMessage");
-      errorMessage.textContent = ""; // Clear error message
-      tableBody.innerHTML = ""; // Clear table
+   async function fetchStockData() {
+  const tableBody = document.getElementById("stockTable");
+  const errorMessage = document.getElementById("errorMessage");
+  errorMessage.textContent = ""; // Clear error message
+  tableBody.innerHTML = ""; // Clear table
 
-      try {
-        const response = await fetch(`${endpoint}?symbols=${symbols.join(",")}`);
-        if (!response.ok) throw new Error("Failed to fetch stock data");
-        const data = await response.json();
+  try {
+    const response = await fetch(`${endpoint}?symbols=${symbols.join(",")}`);
+    if (!response.ok) throw new Error(`HTTP Error: ${response.status} ${response.statusText}`);
+    const data = await response.json();
 
-        data.forEach(stock => {
-          const changeClass = stock.change >= 0 ? "text-green" : "text-red";
-          const row = `
-            <tr>
-              <td>${stock.symbol}</td>
-              <td>$${stock.price.toFixed(2)}</td>
-              <td class="${changeClass}">${stock.change.toFixed(2)}</td>
-            </tr>
-          `;
-          tableBody.innerHTML += row;
-        });
-      } catch (error) {
-        errorMessage.textContent = "Error: Unable to fetch stock data. Please try again later.";
-        console.error("Error fetching stock data:", error);
+    data.forEach(stock => {
+      if (stock.error) {
+        errorMessage.textContent = `Error fetching data for ${stock.symbol}: ${stock.error}`;
+      } else {
+        const changeClass = stock.change >= 0 ? "text-green" : "text-red";
+        const row = `
+          <tr>
+            <td>${stock.symbol}</td>
+            <td>$${stock.price.toFixed(2)}</td>
+            <td class="${changeClass}">${stock.change.toFixed(2)}</td>
+          </tr>
+        `;
+        tableBody.innerHTML += row;
       }
-    }
+    });
+  } catch (error) {
+    errorMessage.textContent = `Error: Unable to fetch stock data. Details: ${error.message}`;
+    console.error("Error fetching stock data:", error);
+  }
+}
+
 
     // Function to add a symbol
     function addSymbol() {
