@@ -1,9 +1,15 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, render_template
 import requests
 
 app = Flask(__name__)
 API_KEY = "ctujh4hr01qg98tdfqe0ctujh4hr01qg98tdfqeg"
 
+# Root route to serve the homepage
+@app.route("/")
+def home():
+    return render_template("index.html")
+
+# Stocks route to fetch stock data
 @app.route("/stocks", methods=["GET"])
 def get_stock_data():
     symbols = request.args.get("symbols", "").split(",")
