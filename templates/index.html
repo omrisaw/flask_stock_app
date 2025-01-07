@@ -48,54 +48,60 @@
   </div>
 
   <script>
-    let symbols = ["AAPL", "GOOGL", "AMZN", "MSFT"]; // Default stock symbols
     const endpoint = "/stocks"; // Flask API endpoint
 
     // Function to fetch stock data
-async function fetchStockData() {
-  const tableBody = document.getElementById("stockTable");
-  const errorMessage = document.getElementById("errorMessage");
-  errorMessage.textContent = ""; // Clear error message
-  tableBody.innerHTML = ""; // Clear table
+    async function fetchStockData() {
+      const tableBody = document.getElementById("stockTable");
+      const errorMessage = document.getElementById("errorMessage");
+      errorMessage.textContent = ""; // Clear error message
+      tableBody.innerHTML = ""; // Clear table
 
-  try {
-    const response = await fetch("/stocks");
-    if (!response.ok) throw new Error(`HTTP Error: ${response.status} ${response.statusText}`);
-    const data = await response.json();
-    console.log("Data from backend:", data); // Debug
+      try {
+        const response = await fetch(endpoint); // GET request
+        if (!response.ok) throw new Error(`HTTP Error: ${response.status} ${response.statusText}`);
+        const data = await response.json();
+        console.log("Data from backend:", data); // Debug
 
-    Object.entries(data).forEach(([symbol, stock]) => {
-      if (stock.error) {
-        errorMessage.textContent = `Error fetching data for ${symbol}: ${stock.error}`;
-      } else {
-        const changeClass = stock.change >= 0 ? "text-green" : "text-red";
-        const row = `
-          <tr>
-            <td>${symbol}</td>
-            <td>$${stock.price.toFixed(2)}</td>
-            <td class="${changeClass}">${stock.change.toFixed(2)}</td>
-          </tr>
-        `;
-        tableBody.innerHTML += row;
+        Object.entries(data).forEach(([symbol, stock]) => {
+          if (stock.error) {
+            errorMessage.textContent = `Error fetching data for ${symbol}: ${stock.error}`;
+          } else {
+            const changeClass = stock.change >= 0 ? "text-green" : "text-red";
+            const row = `
+              <tr>
+                <td>${symbol}</td>
+                <td>$${stock.price.toFixed(2)}</td>
+                <td class="${changeClass}">${stock.change.toFixed(2)}</td>
+              </tr>
+            `;
+            tableBody.innerHTML += row;
+          }
+        });
+      } catch (error) {
+        errorMessage.textContent = `Error: Unable to fetch stock data. Details: ${error.message}`;
+        console.error("Error fetching stock data:", error);
       }
-    });
-  } catch (error) {
-    errorMessage.textContent = `Error: Unable to fetch stock data. Details: ${error.message}`;
-    console.error("Error fetching stock data:", error);
-  }
-}
-
-
+    }
 
     // Function to add a symbol
-    function addSymbol() {
+    async function addSymbol() {
       const newSymbol = document.getElementById("newSymbol").value.trim().toUpperCase();
       const errorMessage = document.getElementById("errorMessage");
-      if (newSymbol && !symbols.includes(newSymbol)) {
-        symbols.push(newSymbol);
-        fetchStockData();
-      } else if (symbols.includes(newSymbol)) {
-        errorMessage.textContent = `Symbol "${newSymbol}" is already in the list.`;
+      if (newSymbol) {
+        try {
+          const response = await fetch(endpoint, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ symbol: newSymbol })
+          });
+          if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
+          const result = await response.json();
+          console.log(result.message);
+          fetchStockData(); // Refresh stock data
+        } catch (error) {
+          errorMessage.textContent = `Error adding symbol: ${error.message}`;
+        }
       } else {
         errorMessage.textContent = "Please enter a valid stock symbol.";
       }
@@ -103,14 +109,25 @@ async function fetchStockData() {
     }
 
     // Function to remove a symbol
-    function removeSymbol() {
+    async function removeSymbol() {
       const symbolToRemove = document.getElementById("newSymbol").value.trim().toUpperCase();
       const errorMessage = document.getElementById("errorMessage");
-      if (symbolToRemove && symbols.includes(symbolToRemove)) {
-        symbols = symbols.filter(symbol => symbol !== symbolToRemove);
-        fetchStockData();
+      if (symbolToRemove) {
+        try {
+          const response = await fetch(endpoint, {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ symbol: symbolToRemove })
+          });
+          if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
+          const result = await response.json();
+          console.log(result.message);
+          fetchStockData(); // Refresh stock data
+        } catch (error) {
+          errorMessage.textContent = `Error removing symbol: ${error.message}`;
+        }
       } else {
-        errorMessage.textContent = `Symbol "${symbolToRemove}" is not in the list.`;
+        errorMessage.textContent = "Please enter a valid stock symbol.";
       }
       document.getElementById("newSymbol").value = ""; // Clear input
     }
